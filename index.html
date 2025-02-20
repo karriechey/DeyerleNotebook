@@ -1,0 +1,37 @@
+<!DOCTYPE html> <!-- Declares this is an HTML5 document -->
+<html lang="en"> <!-- Starts the HTML document and sets language to English -->
+<head>
+    <meta charset="UTF-8"> <!-- Sets character encoding -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Makes page mobile-friendly -->
+    <title>Deyerle Notebook</title> <!-- Title shown in browser tab -->
+</head>
+<body>
+    <h1>Welcome to Deyerle Notebook</h1> <!-- Main heading -->
+    <p>Search for a number to find the corresponding image in the PDF:</p>
+
+    <!-- Input field for entering the number -->
+    <input type="text" id="searchNumber" placeholder="Enter number">
+    <button onclick="searchPDF()">Search</button> <!-- Calls JavaScript function -->
+
+    <br><br>
+
+    <!-- PDF Viewer -->
+    <iframe id="pdfViewer" src="NotebookA.pdf" width="100%" height="600px"></iframe>
+
+    <script>
+        function searchPDF() {
+            // Get the number entered by the user
+            var num = document.getElementById("searchNumber").value;
+            
+            // Check if input is empty
+            if (num.trim() === "") {
+                alert("Please enter a number.");
+                return;
+            }
+
+            // Open the PDF at the searched number's page
+            document.getElementById("pdfViewer").src = `NotebookA.pdf#search=${num}`;
+        }
+    </script>
+</body>
+</html>
