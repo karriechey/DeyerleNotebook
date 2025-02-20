@@ -19,19 +19,35 @@
     <iframe id="pdfViewer" src="NotebookA.pdf" width="100%" height="600px"></iframe>
 
     <script>
-        function searchPDF() {
-            // Get the number entered by the user
-            var num = document.getElementById("searchNumber").value;
-            
-            // Check if input is empty
-            if (num.trim() === "") {
-                alert("Please enter a number.");
-                return;
-            }
+        // Mapping numbers to PDF pages (Update this manually)
+        const numberToPageMap = {
+        // Page 1
+        "1C": 1, "2C": 1, "3C": 1, "4C": 1, "5C": 1, "6C": 1, "7C": 1,
 
-            // Open the PDF at the searched number's page
-            document.getElementById("pdfViewer").src = `NotebookA.pdf#search=${num}`;
+        // Page 2
+        "8C": 2, "9C": 2, "10C": 2, "11C": 2, "12C": 2, "13C": 2, "14C": 2, "15C": 2,
+
+        // Page 3
+        "1": 3, "5": 3, "3": 3, "4": 3, "13C": 3, "6": 3, "7": 3,
+
+        // Page 4
+        "8": 4, "9": 4, "10": 4, "11": 4, "12": 4, "13": 4, "14": 4, "15": 4, "6": 4
+            // Add more numbers and corresponding pages here
+        };
+    
+        function searchPDF() {
+        var num = document.getElementById("searchNumber").value.trim().toUpperCase(); // Convert input to uppercase
+
+        if (!num) {
+            alert("Please enter a number.");
+            return;
         }
-    </script>
-</body>
-</html>
+
+        if (numberToPageMap[num]) {
+            var page = numberToPageMap[num];
+            document.getElementById("pdfViewer").src = `yourfile.pdf#page=${page}`;
+        } else {
+            alert("Number not found in the PDF.");
+        }
+    }
+</script>
