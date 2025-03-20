@@ -3,197 +3,510 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deyerle Notebook A</title>
+    <title>Meteorite Notebook Viewer</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 10px;
-            line-height: 0.6;
-            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            background-image: linear-gradient(#ddd 1px, transparent 1px),
+                              linear-gradient(90deg, #ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .header {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .search-bar {
+            width: 80%;
+            max-width: 600px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .search-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .notebook-title {
+            margin: 10px 0;
+            padding: 5px 0;
+            text-align: center;
+            font-size: 1.8em;
             color: #333;
-            padding: 0.5px;
         }
-
-        h1 {
-            font-size: 2.0rem;
-            color: black;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px;
         }
-
-        p {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 1.0rem;
-            color: #555;
+        
+        .page-section {
+            display: flex;
+            background-color: white;
+            margin-bottom: 40px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
         }
-        input, button {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 0.9rem;
-            padding: 6px;
-            margin: 4px 1;
+        
+        .image-container {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            min-width: 300px;
         }
-
-        button {
-            background-color: black;
+        
+        .image-wrapper {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: white;
+        }
+        
+        .image-wrapper img {
+            width: 100%;
+            display: block;
+        }
+        
+        .text-container {
+            flex: 1;
+            padding: 20px;
+            border-left: 1px solid #ddd;
+        }
+        
+        .text-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        .page-number {
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .entry-number {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        mark {
+            background-color: yellow;
+            padding: 0 2px;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
             color: white;
             border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            display: none;
+        }
+        
+        .back-to-top:hover {
+            opacity: 1;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+        
+        .search-results {
+            margin: 5px auto 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+            max-width: 800px;
+        }
+        
+        .search-results-count {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .search-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .search-nav button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
         }
-
-        button:hover {
-            background-color: grey;
+        
+        .search-nav button:hover {
+            background-color: #0056b3;
+        }
+        
+        .search-nav button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .page-section {
+                flex-direction: column;
+            }
+            
+            .image-container {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                min-width: auto;
+            }
+            
+            .text-container {
+                border-left: none;
+            }
         }
     </style>
-
 </head>
 <body>
-    <h1>Welcome to Deyerle Notebook A</h1>
-    <p>Search for a number to find the corresponding entry in the notebook:</p>
-
-    <input type="text" id="searchNumber" placeholder="Enter number (e.g., 3)">
-    <button onclick="searchPDF()">Search</button>
+    <div class="header">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search for keywords...">
+        <div class="search-options">
+            <label>
+                <input type="checkbox" id="searchTitle" checked> Search in titles
+            </label>
+            <label>
+                <input type="checkbox" id="searchContent" checked> Search in content
+            </label>
+            <button id="searchButton">Search</button>
+        </div>
+    </div>
     
-    <!-- Display the links instead of the PDF viewer -->
-    <p id="pdfLink"></p>
+    <h1 class="notebook-title" id="notebookTitle">Deyerle Meteorite Notebook C</h1>
     
-
+    <div class="search-results" id="searchResults">
+        <div class="search-results-count" id="searchResultsCount"></div>
+        <div class="search-nav">
+            <button id="prevResult" disabled>Previous</button>
+            <span id="currentResult">0/0</span>
+            <button id="nextResult" disabled>Next</button>
+        </div>
+    </div>
+    
+    <div class="container" id="notebookContainer">
+        <div class="loading" id="loadingMessage">Loading notebook data...</div>
+    </div>
+    
+    <button id="backToTop" class="back-to-top" title="Back to Top">↑</button>
 
     <script>
-        const numberToPageMap = {
-    // Page 1
-    "1C": [1], "2C": [1], "3C": [1], "4C": [1], "5C": [1], "6C": [1], "7C": [1],
-
-    // Page 2
-    "8C": [2], "9C": [2], "10C": [2], "11C": [2], "12C": [2], "13C": [2], "14C": [2], "15C": [2],
-
-    // Page 3
-    "1": [3], "5": [3, 5], "3": [3, 4], "4": [3], "13C": [3], "6": [3, 4], "7": [3],
-
-    // Page 4
-    "8": [4], "9": [4], "10": [4], "11": [4], "12": [4], "13": [4], "14": [4], "15": [4],
-
-    // Page 5
-    "16": [5], "17": [5], "18": [5], "19": [5], "20": [5],
-
-    // Page 6
-    "21": [6], "22": [6], "23": [6], "24": [6],
-
-    // Page 7
-    "26": [7], "27": [7], "24": [7],
-
-    // Page 8
-    "28": [8], "29": [8],
-
-    // Page 9
-    "30": [9], "31": [9], "32": [9],
-
-    // Page 10
-    "33": [10], "34": [10], "35": [10], "36": [10], "37": [10, 11, 13, 22],
-
-    // Page 11
-    "38": [11], "39": [11], "40": [11], "41": [11, 13, 21], "42": [11, 13], "43": [11],
-
-    // Page 12
-    "44": [12], "45": [12], "46": [12], "47": [12], "48": [12, 13], "49": [12, 13], "50": [12, 27, 28],
-
-    // Page 13
-    "51": [13],
-
-    // Page 14
-    "52": [14], "53": [14], "54": [14], "55": [14], "56": [14], "57": [14], "58": [14], "59": [14],
-
-    // Page 15
-    "59": [15], "60": [15, 21], "61": [15], "62": [15], "63": [15, 23], "64": [15], "65": [15], "66": [15], "67": [15], "68": [15],
-
-    // Page 16
-    "69": [16], "70": [16], "71": [16], "72": [16], "73": [16, 32], "74": [16],
-
-    // Page 17
-    "75": [17], "76": [17, 28], "77": [17, 22],
-
-    // Page 18
-    "78": [18], "79": [18], "80": [18], "81": [18, 27], "82": [18], "83": [18],
-
-    // Page 19
-    "84": [19], "85": [19, 23, 25], "86": [19],
-
-    // Page 20
-    "90": [20, 21], "91": [20, 22], "92": [20, 22, 26], "93": [20], "94": [20], "95": [20], "97": [20, 25, 27],
-
-    // Page 21
-    "3C": [21], "88": [21], "17": [21],
-
-    // Page 22
-    //only has repeated number
-
-    // Page 23
-    "93": [23], "47": [23],
-
-    // Page 24
-    "94": [24], "95": [24], "16": [24],
-
-    // Page 25
-    "98": [25, 26], "96": [25], 
-
-    // Page 26
-    "99": [26, 30], "100": [26],
-
-    // Page 27
-    "101": [27], "102": [27, 28], "103": [27, 29, 30, 34], "104": [27, 29], "224": [27],
-
-    // Page 28
-    "105": [28], "106": [28, 29, 30], "107": [28, 29], "51": [28],
-
-    // Page 29
-    "55": [29],
-
-    // Page 30
-    "24": [30], "108": [30], "109": [30, 31],
-
-    // Page 31
-    "110": [31], "54": [31], "111": [31], "9": [31], "33": [31],
-
-    // Page 32
-    "108": [32], "16": [32], "16C": [32], "6C": [32], "13C": [32], "4C": [32], "10C": [32],
-
-    // Page 33
-    "17C": [33], "14": [33], "58": [33], "25": [33], "112": [33], "4": [33], "113": [33],
-
-    // Page 34
-    "113": [34], "13C": [34], "18C": [34], "14C": [34], "57": [34], "114": [34], "10C": [34]
-};
-
-function searchPDF() {
-    var num = document.getElementById("searchNumber").value.trim().toUpperCase(); // Convert input to uppercase
-
-    if (!num) {
-        alert("Please enter a number.");
-        return;
-    }
-
-    console.log(`Searching for: ${num}`); // Debugging: log the search term
-
-    if (numberToPageMap[num]) {
-        var pages = numberToPageMap[num]; // Get the pages where the number appears
-        console.log(`Pages for ${num}: ${pages}`); // Debugging: log the pages
-
-        // Generate links for all pages where the number appears
-        var links = pages.map(page => {
-            return `<a href="NotebookA.pdf#page=${page}" target="_blank">Page ${page}</a>`;
-        }).join(", "); // Join the page links with a comma and space
-
-        document.getElementById("pdfLink").innerHTML = 
-            `Click the following links to go to ${num} on pages: ${links}`;
-    } else {
-        alert("Number not found in the PDF.");
-    }
-}
-    // Add event listener for the Enter key
-    document.getElementById("searchNumber").addEventListener("keydown", function(event) {
-            if (event.key === "Enter") { // Check if the pressed key is "Enter"
-                searchPDF(); // Call the search function
+        // Function to parse text file content
+        function parseTextFile(content) {
+            const pages = [];
+            const regex = /=== \*\*Page: (\d+) of (\d+)\*\*/g;
+            let match;
+            let totalPages = 0;
+            
+            // First, extract the filename if present
+            let filename = "Unknown Notebook";
+            const filenameMatch = content.match(/=== \*\*Filename: (.*?)\*\*/);
+            if (filenameMatch && filenameMatch[1]) {
+                filename = filenameMatch[1];
             }
+            
+            // Split the content by page markers
+            const parts = content.split(regex);
+            
+            // The first element is anything before the first marker
+            parts.shift();
+            
+            // Process the rest of the parts
+            for (let i = 0; i < parts.length; i += 3) {
+                const pageNumber = parseInt(parts[i]);
+                totalPages = parseInt(parts[i + 1]);
+                const pageContent = parts[i + 2].trim();
+                
+                // Extract the entry number from the first line
+                const lines = pageContent.split('\n');
+                const firstLine = lines[0].trim();
+                const entryNumberMatch = firstLine.match(/^(\d+)/);
+                let entryNumber = "";
+                
+                if (entryNumberMatch) {
+                    entryNumber = entryNumberMatch[1];
+                }
+                
+                // All lines make up the content (don't treat first line as title)
+                const content = pageContent;
+                
+                pages.push({
+                    pageNumber: pageNumber,
+                    entryNumber: entryNumber,
+                    content: content
+                });
+            }
+            
+            return { pages, totalPages, filename };
+        }
+        
+        // Sample text content for demonstration
+        const textFileContent = `=== **Filename: Notebook C.pdf**
+=== **Page: 1 of 34**
+
+304  
+Anomalous plessite, stable light - Morelos, Tex (1938). 37.4gm. part slice. Box xx h. D. new invoice dated 4/28/94.  
+$165. "Drill" sulvey gray police stated.. on Hypred.  
+Metal pattern. 42 x 35 x 3 MM. "A very rare type"  
+"B.M. - 2F. - a Pentagon Shaped. Both sides &amp; 3 of the 5 edges are cut. The "top" is etched. No open. Could also then, Potentially new of vores all gray. Aligned / Kiria adus. Very small draft. mostly Contained in the "S.W." portion of the bottom" The "tip" is etched. Vin cut.  
+Peeling away maraly. Very thin layer. many polished - it's gorgeous in, various looking tones. The natural edge, eg. "has pent." Some temp and heat grooved in "Top" same label meet. The labeled "tip" looks to be framing, open, in etched. Buried in some areas, I say the natural edge is the top. h. natural edge. Then, one c. small piece at the top - h. Copied in several directions when the end got ragged hi. several directions near the and m. The natural edge of the "tip" is to be more curved in, than the line of the "X". Some imperfections aired in a darker area. Some somewhat larger no etched patches where the etched edges meet. Easily the largest such patch is along the "point", / Mr. Same patches on the natural edge too, eh. Ala The Ha one. "Very rare type (iron)"
+
+305  
+IA Core stable light - Dept, Tet.; 29.3 gm. Complete specimen. Box xx h. D. new, 4/28/94. $50. a stone. 26 x 25 x 20 mm. "Complete dark brown rounded slightly curved on outside, elongated specimen in typed and crust", 24 gram. 3 edges visy to me in a setting - 5 in long. Base does a setting, very slightly concave and up to small 7x small. 5 holes, very slightly concave area near 1 edge in a small, flat-like below, eg them. Reddish brown - dark brown - Blackish and Guild in some areas.
+
+=== **Page: 2 of 34**
+
+metal exposed. Return 1 of the pyramidal few in the bottom is a small, undistorted nucleus. The vein is reddish-brown to black, and above is dark addition to matrix. No metal exposed. The vein above is dark/dirty, mostly "clay". A gentle curve - Duel a good day- some of the edges. A deeper crack near the point of the pyramid. Very nearly a chimeny just below the point. The vein gently curves nearly a chimeny just below its gentler contour. And non the creek is chimeny & continuation of the gentle curve. Below and above is creek chimeny, midden near the permit. Some metal exposed. The 3rd side of the pyramidal is a gentle curve. Below and above, some metal exposed. 2 gentle curves. Cracks near the point. Upper like a goose feather. Shows cycle.
+
+306
+
+Anomalous, metal-rich atopite - Santa Catarina.
+
+Brazil. 4d. 69m. Enigma per veins of dark and piece of layered structure. These polished... in light to dark brown layers of thinite are typical of colloform structure. Very unusual hyaline. Layered structure. Layer's of thinite are typical of colloform structure. The matrix derives from atopite to laminate. 6.5 X 5.5 X 15 mm. The matrix derives from atopite to laminate. Turned deep brown at "top" hole (yellowish-sulfur?) Ridge line on the talist. Royal blue western surface. Pitted, sp. Cementales along the contours. Soft. A number of holes entirely penetrated the specimen where it's tamest - it's point. "Prominent", a couple of tiny thing spots. The "bottom" is gray-song, like Bram-haben weddite, but is stiffer, more altered vein, bigger & small. Dark-vine, and gray and King metal gray mass. A little flat and broad net. Large ones near the tamest part of the specimen. Deep pitted - legs on either side of the grooves in end of the vein - De dull gray opaque "King of Catan" angles of its loft. Demand to notify Combly.
+
+New - veins probably metal later oxidizing; veins reveal structure escalating a very unusual situation, small.
+
+=== **Page: 3 of 34**
+
+307  
+Amethyst medium Felsit - Grand Rapids.  
+Meet: 30.1 gm. pork slice. Bought of D. Newbury  
+4/28/94. $90." Oak grey to silvery-grey polished.  
+W/somewhat elongated Wild pattern. 3/8 x 5/8 x 8 mm.  
+"Hoped" shape.  
+Ridge below 3 eyes & 4 edges on  
+Cup. The "top" is etched. Poll.  
+along the material edge.  
+Daly - Kinian Leg. Long lobes and lobe along N edge.  
+Long lobe, a similar pattern along S lobe.  
+"Hand" along the lobe edge. Some series  
+perpendicular to the lobe edge. Some series  
+more often very small edge. A hint of mixing pattern?  
+1 lobe in the central zone?  
+Out of bottom is  
+"Slumpy" from Long lobe. Position and some  
+"Chi" missing along the material edge. Problem  
+od on the top.  
+Mykel, not spots. The longer cup edge is merely plastered.  
+and ? A hint of met. lettering? The center  
+No oppor. as gone. The Grain. Competed mottle 37 mm. Lovelle  
+running along the key axes of the edge. Down hill.  
+I must. The short cup edge mostly polished. To 5 grooves  
+m? Some small, speckled. The material edge is Covers  
+in dark red from the side cup. Open. Many red f.  
+after the small, Key, gets up. near crest, where  
+meets broad sharp.
+
+308  
+H3 - Burnfield Top. 1937. 13.1 gm. port slice.  
+Bought h. D. New 4/28/94. $125. A Medium. Cub dom.  
+has a spermay in the center. 34x25x 5 MM. << W/cm width.  
+1/2 mm Concha. Small scattered in little interior.  
+Dark almost-black polished. m. J. Mem  
+venas neat...  
+outer edges are Covered in red-brown mud.  
+Round and Oval shaped "top" Concave BX below  
+3 eyes to 4 edges on cub.  
+The "top" is  
+is fairly shiny, gun metal grey in many  
+small bits - 7 holes chi. Pit < deeper than  
+"bottom" is duller - thousands dexter, dark grey grooves  
+The concha has light grey < many etched. Pitted.  
+Both sales have a rather uneven scratcher running along the natural`;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('notebookContainer');
+            const backToTopBtn = document.getElementById('backToTop');
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            // Parse the text file content
+            const { pages, totalPages, filename } = parseTextFile(textFileContent);
+            
+            // Set notebook title
+            document.getElementById('notebookTitle').textContent = 'Deyerle Meteorite Notebook C';
+            
+            // Remove loading message
+            loadingMessage.style.display = 'none';
+            
+            // Create the notebook contents
+            pages.forEach(page => {
+                const section = document.createElement('section');
+                section.className = 'page-section';
+                section.id = `page-${page.pageNumber}`;
+                
+                // Create image container
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+                
+                const imageWrapper = document.createElement('div');
+                imageWrapper.className = 'image-wrapper';
+                
+                const img = document.createElement('img');
+                // Format the page number with padding zeros
+                const paddedNumber = page.pageNumber.toString().padStart(4, '0');
+                img.src = `Notebook C_page-${paddedNumber}.jpg`;
+                img.alt = `Page ${page.pageNumber}`;
+                img.loading = 'lazy'; // Lazy load images for better performance
+                
+                // Handle image errors gracefully
+                img.onerror = function() {
+                    this.src = 'placeholder.jpg';
+                    this.alt = 'Image not available';
+                };
+                
+                imageWrapper.appendChild(img);
+                imageContainer.appendChild(imageWrapper);
+                
+                // Create text container
+                const textContainer = document.createElement('div');
+                textContainer.className = 'text-container';
+                
+                const pageNum = document.createElement('div');
+                pageNum.className = 'page-number';
+                pageNum.textContent = `Page ${page.pageNumber} of ${totalPages}`;
+                textContainer.appendChild(pageNum);
+                
+                // Only add entry number as a separate element if it exists
+                if (page.entryNumber) {
+                    const entryNumberElem = document.createElement('div');
+                    entryNumberElem.className = 'entry-number';
+                    entryNumberElem.textContent = `Entry ${page.entryNumber}`;
+                    textContainer.appendChild(entryNumberElem);
+                }
+                
+                const textContent = document.createElement('div');
+                textContent.className = 'text-content';
+                textContent.textContent = page.content;
+                textContainer.appendChild(textContent);
+                
+                // Add them to the section
+                section.appendChild(imageContainer);
+                section.appendChild(textContainer);
+                
+                // Add the section to the container
+                container.appendChild(section);
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    return;
+                }
+                
+                // Remove previous highlights
+                document.querySelectorAll('mark').forEach(mark => {
+                    const parent = mark.parentNode;
+                    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+                    parent.normalize();
+                });
+                
+                // Find matches and highlight them
+                let foundMatch = false;
+                let firstMatchElement = null;
+                
+                document.querySelectorAll('.text-content').forEach(textContent => {
+                    const content = textContent.textContent.toLowerCase();
+                    
+                    if (content.includes(searchTerm)) {
+                        foundMatch = true;
+                        
+                        // Highlight matches
+                        const text = textContent.textContent;
+                        const regex = new RegExp(searchTerm, 'gi');
+                        const highlightedText = text.replace(regex, match => `<mark>${match}</mark>`);
+                        textContent.innerHTML = highlightedText;
+                        
+                        // Store the first match element for scrolling
+                        if (!firstMatchElement) {
+                            firstMatchElement = textContent.querySelector('mark');
+                        }
+                    }
+                });
+                
+                if (foundMatch && firstMatchElement) {
+                    // Scroll to the first match
+                    firstMatchElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                } else {
+                    alert('No matches found for: ' + searchTerm);
+                }
+            }
+            
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            searchButton.addEventListener('click', performSearch);
+            
+            // Back to top button
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.style.display = 'block';
+                } else {
+                    backToTopBtn.style.display = 'none';
+                }
+            });
+            
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
         });
-
-
     </script>
 </body>
 </html>
