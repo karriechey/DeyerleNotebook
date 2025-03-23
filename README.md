@@ -1,2 +1,2 @@
 # DeyerleNotebook
-DeyerleNotebookA: https://karriechey.github.io/DeyerleNotebook/
+URL: https://karriechey.github.io/DeyerleNotebook/
