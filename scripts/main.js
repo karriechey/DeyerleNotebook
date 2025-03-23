@@ -63,43 +63,139 @@ let currentNotebook = "A";
 // Function to load a notebook's text content
 async function loadNotebookContent(notebookId) {
     try {
-        // Use the correct GitHub path structure for your repository
+        console.log(`Fetching notebook_${notebookId}.txt...`); // Debug log
         const response = await fetch(`data/notebook_${notebookId}.txt`);
+        
         if (!response.ok) {
+            console.error(`HTTP error ${response.status}: ${response.statusText}`);
             throw new Error(`Failed to load notebook ${notebookId}`);
         }
-        return await response.text();
+        
+        const text = await response.text();
+        console.log(`Successfully loaded notebook ${notebookId} (${text.length} bytes)`);
+        return text;
     } catch (error) {
         console.error(`Error loading notebook ${notebookId}:`, error);
+        // Don't alert, just log the error - alerts can be annoying to users
         return null;
     }
 }
 
 // Function to get the image path for a specific page
 function getImagePath(notebookId, pageNumber) {
+    // Convert the page number to a string and add leading zeros to make it 4 digits
+    const paddedNumber = pageNumber.toString().padStart(4, '0');
+    
+    // Use the correct file naming format from the GitHub repository
+    // Note the format: "Notebook A_page-0001.jpg" instead of "page-0001.jpg"
+    const path = `https://raw.githubusercontent.com/karriechey/DeyerleNotebook/main/images/notebook_${notebookId}/Notebook%20${notebookId}_page-${paddedNumber}.jpg`;
+    
+    // Log the image path to the console for debugging purposes
+    console.log(`Loading image: ${path}`);
+    
+    // Return the complete image path to be used in the img src attribute
+    return path;
+}
+
+// Function to create image element with robust error handling
+function createImageElement(notebookId, pageNumber) {
+    // Create the image element
+    const img = document.createElement('img');
+    
+    // Enable lazy loading for better performance
+    img.loading = 'lazy';
+    
     // Format page number with leading zeros
     const paddedNumber = pageNumber.toString().padStart(4, '0');
-    // Use the correct path to match your GitHub structure
-    return `images/notebook_${notebookId}/page-${paddedNumber}.jpg`;
+    
+    // Set the image source to the GitHub raw content URL with the correct format
+    img.src = getImagePath(notebookId, pageNumber);
+    
+    // Set descriptive alt text for accessibility
+    img.alt = `Page ${pageNumber}`;
+    
+    // Set a base64 encoded placeholder image that will display when error occurs
+    // This is a tiny gray square image encoded as base64
+    const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH4QIFBCg7lhEQ2gAAAAlwSFlzAAAOwwAADsMBx2+oZAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAABsSURBVHja7c0BDQAAAMKg909tDwcUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAuyoAAAEGutPR7QAAAABJRU5ErkJggg==';
+    
+    // Store notebook ID and padded page number in data attributes for use in error handler
+    img.dataset.notebookId = notebookId;
+    img.dataset.paddedNumber = paddedNumber;
+    
+    // Handle image loading errors with multiple fallback options
+    img.onerror = function() {
+        console.error(`Failed to load image: ${this.src}`);
+        
+        // Get the stored notebook ID and padded number from data attributes
+        const notebookId = this.dataset.notebookId;
+        const paddedNumber = this.dataset.paddedNumber;
+        
+        // Try GitHub Pages URL format as a fallback
+        if (this.src.includes('raw.githubusercontent.com')) {
+            console.log('Trying GitHub Pages format...');
+            this.src = `https://karriechey.github.io/DeyerleNotebook/images/notebook_${notebookId}/Notebook%20${notebookId}_page-${paddedNumber}.jpg`;
+        }
+        // If GitHub Pages format failed, try a relative path
+        else if (this.src.includes('github.io')) {
+            console.log('Trying relative path format...');
+            this.src = `images/notebook_${notebookId}/Notebook ${notebookId}_page-${paddedNumber}.jpg`;
+        }
+        // If all attempts failed, use the placeholder
+        else if (!this.src.startsWith('data:image/')) {
+            console.log('All image loading attempts failed, using placeholder...');
+            this.src = placeholderImage;
+            this.alt = 'Image not available';
+            this.classList.add('placeholder-image');
+        }
+    };
+    
+    return img;
 }
+
+
 
 // Function to load a specific notebook
 async function loadNotebook(notebookId) {
+    console.log(`Loading notebook ${notebookId}...`); // Debug log
+    
     const container = document.getElementById('notebookContainer');
+    
+    // Check if container exists before proceeding
+    if (!container) {
+        console.error('Error: notebookContainer element not found');
+        return;
+    }
+    
     const loadingMessage = document.getElementById('loadingMessage');
     
-    // Clear existing content
-    container.innerHTML = '';
-    container.appendChild(loadingMessage);
-    loadingMessage.style.display = 'block';
+    // Check if loadingMessage exists before trying to use it
+    if (!loadingMessage) {
+        console.error('Error: loadingMessage element not found');
+        // Create a temporary loading message if the original is missing
+        const tempLoadingMsg = document.createElement('div');
+        tempLoadingMsg.className = 'loading';
+        tempLoadingMsg.textContent = 'Loading...';
+        
+        // Clear existing content
+        container.innerHTML = '';
+        container.appendChild(tempLoadingMsg);
+    } else {
+        // Clear existing content
+        container.innerHTML = '';
+        container.appendChild(loadingMessage);
+        loadingMessage.style.display = 'block';
+    }
     
     // Update the notebook title
-    document.getElementById('notebookTitle').textContent = `Deyerle Meteorite Notebook ${notebookId}`;
+    const notebookTitle = document.getElementById('notebookTitle');
+    if (notebookTitle) {
+        notebookTitle.textContent = `Deyerle Meteorite Notebook ${notebookId}`;
+    }
     
     // Set the current notebook
     currentNotebook = notebookId;
     
-    // Update active tab
+    // Update active tab - make sure this part works
     document.querySelectorAll('.notebook-tab').forEach(tab => {
         tab.classList.remove('active');
         if (tab.getAttribute('data-notebook') === notebookId) {
@@ -126,6 +222,13 @@ async function loadNotebook(notebookId) {
 // Function to render a notebook
 function renderNotebook(notebookInfo) {
     const container = document.getElementById('notebookContainer');
+    
+    // Error handling if container is missing
+    if (!container) {
+        console.error('Error: notebookContainer element not found');
+        return;
+    }
+    
     const loadingMessage = document.getElementById('loadingMessage');
     
     // Clear container first
@@ -140,32 +243,37 @@ function renderNotebook(notebookInfo) {
     
     // Build table of contents
     const tocContent = document.getElementById('tocContent');
-    tocContent.innerHTML = '';
-    
-    const entriesMap = new Map();
-    pages.forEach(page => {
-        if (page.entryNumber) {
-            if (!entriesMap.has(page.entryNumber)) {
-                entriesMap.set(page.entryNumber, page.pageNumber);
+    if (tocContent) {
+        tocContent.innerHTML = '';
+        
+        const entriesMap = new Map();
+        pages.forEach(page => {
+            if (page.entryNumber) {
+                if (!entriesMap.has(page.entryNumber)) {
+                    entriesMap.set(page.entryNumber, page.pageNumber);
+                }
             }
-        }
-    });
-    
-    // Sort entries and add to TOC
-    Array.from(entriesMap.entries()).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).forEach(([entryNumber, pageNumber]) => {
-        const entryLink = document.createElement('a');
-        entryLink.href = `#page-${pageNumber}`;
-        entryLink.textContent = `Entry ${entryNumber}`;
-        entryLink.onclick = function(e) {
-            e.preventDefault();
-            document.getElementById(`page-${pageNumber}`).scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-            tocContent.classList.remove('show');
-        };
-        tocContent.appendChild(entryLink);
-    });
+        });
+        
+        // Sort entries and add to TOC
+        Array.from(entriesMap.entries()).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).forEach(([entryNumber, pageNumber]) => {
+            const entryLink = document.createElement('a');
+            entryLink.href = `#page-${pageNumber}`;
+            entryLink.textContent = `Entry ${entryNumber}`;
+            entryLink.onclick = function(e) {
+                e.preventDefault();
+                const pageElement = document.getElementById(`page-${pageNumber}`);
+                if (pageElement) {
+                    pageElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+                tocContent.classList.remove('show');
+            };
+            tocContent.appendChild(entryLink);
+        });
+    }
     
     // Create the notebook contents
     pages.forEach(page => {
@@ -176,22 +284,12 @@ function renderNotebook(notebookInfo) {
         // Create image container
         const imageContainer = document.createElement('div');
         imageContainer.className = 'image-container';
-        
+
         const imageWrapper = document.createElement('div');
         imageWrapper.className = 'image-wrapper';
-        
-        // Create img element instead of placeholder
-        const img = document.createElement('img');
-        img.loading = 'lazy'; // Enable lazy loading
-        img.src = getImagePath(currentNotebook, page.pageNumber);
-        img.alt = `Page ${page.pageNumber}`;
-        
-        // Handle image errors gracefully
-        img.onerror = function() {
-            // If the image fails to load, show a placeholder instead
-            this.src = 'placeholder.jpg';
-            this.alt = 'Image not available';
-        };
+
+        // Use the improved image creation function
+        const img = createImageElement(currentNotebook, page.pageNumber);
         
         imageWrapper.appendChild(img);
         imageContainer.appendChild(imageWrapper);
@@ -230,8 +328,10 @@ function renderNotebook(notebookInfo) {
     // Add the notebook section to the container
     container.appendChild(notebookSection);
     
-    // Hide loading message
-    loadingMessage.style.display = 'none';
+    // Hide loading message if it exists
+    if (loadingMessage) {
+        loadingMessage.style.display = 'none';
+    }
     
     // Update navigation buttons state
     updateNavigationState();
@@ -425,8 +525,29 @@ function performSearch() {
     }
 }
 
+// Add a simple test to check if fetch is working and network is accessible
+function testFetch() {
+    fetch('data/notebook_A.txt')
+        .then(response => {
+            console.log("Fetch test response:", response.status, response.statusText);
+            if (!response.ok) {
+                console.warn("Fetch test failed - check network and file paths");
+            } else {
+                console.log("Fetch test succeeded - network and file paths look good");
+            }
+        })
+        .catch(error => {
+            console.error("Fetch test error:", error);
+        });
+}
+
 // Initialize everything when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, initializing..."); // Debug log
+    
+    // Run a quick test to see if fetch is working
+    testFetch();
+    
     const backToTopBtn = document.getElementById('backToTop');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
@@ -435,16 +556,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevEntryBtn = document.getElementById('prevEntry');
     const nextEntryBtn = document.getElementById('nextEntry');
     
-    // Load the first notebook by default
-    loadNotebook('A');
+    // Check for all required elements
+    if (!backToTopBtn || !searchInput || !searchButton || !tocBtn || 
+        !tocContent || !prevEntryBtn || !nextEntryBtn) {
+        console.error("One or more required elements are missing from the DOM");
+    }
     
-    // Set up notebook tab switching
+    // Set up notebook tab switching - this is crucial
     document.querySelectorAll('.notebook-tab').forEach(tab => {
+        console.log(`Setting up tab for ${tab.getAttribute('data-notebook')}`); // Debug log
         tab.addEventListener('click', function() {
             const notebookId = this.getAttribute('data-notebook');
+            console.log(`Tab clicked: ${notebookId}`); // Debug log
             loadNotebook(notebookId);
         });
     });
+
+    // Load the first notebook by default
+    loadNotebook('A');
     
     // Table of contents dropdown functionality
     tocBtn.addEventListener('click', function() {
