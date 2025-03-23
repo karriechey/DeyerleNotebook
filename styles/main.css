@@ -98,7 +98,10 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
             overflow: hidden;
+            align-items: stretch; /* This ensures both containers stretch to match height */
         }
+        
+       
         
         /* Container for the page image */
         .image-container {
@@ -106,7 +109,11 @@
             padding: 20px;
             border-right: 1px solid #ddd;
             min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to the top */
         }
+
         
         /* Wrapper for the image with border */
         .image-wrapper {
@@ -126,13 +133,38 @@
             flex: 1;
             padding: 20px;
             border-left: 1px solid #ddd;
+            max-height: 600px; /* Set a maximum height to match typical image height */
+            overflow-y: auto; /* Make it scrollable vertically */
+            font-size: 0.95em; /* Slightly reduced font size for better fit */
         }
         
-        /* Text content styling */
-        .text-content {
-            white-space: pre-wrap;
-            line-height: 1.6;
+        /* Improve scrollbar appearance for the text container */
+        .text-container::-webkit-scrollbar {
+            width: 8px;
         }
+        
+        .text-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .text-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .text-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+         /* Maintain readability for scrollable text */
+         .text-content {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            padding-right: 10px; /* Add some padding to avoid text touching scrollbar */
+        }
+
+        
         
         /* Page number indicator */
         .page-number {
