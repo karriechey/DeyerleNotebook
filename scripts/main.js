@@ -1,3 +1,53 @@
+// Create a configuration object
+const config = {
+    scrollTimings: {
+      headerHide: 500,    // ms to wait before hiding header after scroll stops
+      headerShow: 1500    // ms for header show animation duration
+    },
+    thresholds: {
+      scrollTop: 100,     // px scrolled before header hides
+      mouseProximity: 20  // px from top to trigger header show on mousemove
+    }
+  };
+  
+  // Use requestAnimationFrame for scroll handling
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        // Your scroll handling code here
+        handleScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true }); // Add passive flag for better performance
+  
+  // Implement debouncing for frequently triggered events
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  // Use the debounce function for search input
+  searchInput.addEventListener('keyup', debounce(function(event) {
+    if (event.key === 'Enter') {
+      performSearch();
+    }
+  }, 300));
+
+
+
+
+
+
 // Function to parse text file content
 function parseTextFile(content) {
     // Create an empty array to store page data
@@ -60,10 +110,14 @@ const notebookData = {
 // Current active notebook
 let currentNotebook = "A";
 
-// Function to load a notebook's text content
+/**
+ * Loads a notebook's text content from the server
+ * @param {string} notebookId - The ID of the notebook to load
+ * @returns {Promise<string|null>} - The text content or null if failed
+ */
 async function loadNotebookContent(notebookId) {
     try {
-        console.log(`Fetching notebook_${notebookId}.txt...`); // Debug log
+        console.log(`Fetching notebook_${notebookId}.txt...`);
         const response = await fetch(`data/notebook_${notebookId}.txt`);
         
         if (!response.ok) {
@@ -81,23 +135,31 @@ async function loadNotebookContent(notebookId) {
     }
 }
 
-// Function to get the image path for a specific page
+/**
+ * Constructs the image path for a specific notebook page
+ * @param {string} notebookId - The ID of the notebook
+ * @param {number} pageNumber - The page number
+ * @returns {string} - The complete image path
+ */
 function getImagePath(notebookId, pageNumber) {
     // Convert the page number to a string and add leading zeros to make it 4 digits
     const paddedNumber = pageNumber.toString().padStart(4, '0');
     
     // Use the correct file naming format from the GitHub repository
-    // Note the format: "Notebook A_page-0001.jpg" instead of "page-0001.jpg"
     const path = `https://raw.githubusercontent.com/karriechey/DeyerleNotebook/main/images/notebook_${notebookId}/Notebook%20${notebookId}_page-${paddedNumber}.jpg`;
     
-    // Log the image path to the console for debugging purposes
+    // Log the image path for debugging purposes
     console.log(`Loading image: ${path}`);
     
-    // Return the complete image path to be used in the img src attribute
     return path;
 }
 
-// Function to create image element with robust error handling
+/**
+ * Creates an image element with robust error handling
+ * @param {string} notebookId - The ID of the notebook
+ * @param {number} pageNumber - The page number
+ * @returns {HTMLImageElement} - The created image element
+ */
 function createImageElement(notebookId, pageNumber) {
     // Create the image element
     const img = document.createElement('img');
@@ -152,11 +214,12 @@ function createImageElement(notebookId, pageNumber) {
     return img;
 }
 
-
-
-// Function to load a specific notebook
+/**
+ * Loads and displays a specific notebook
+ * @param {string} notebookId - The ID of the notebook to load
+ */
 async function loadNotebook(notebookId) {
-    console.log(`Loading notebook ${notebookId}...`); // Debug log
+    console.log(`Loading notebook ${notebookId}...`);
     
     const container = document.getElementById('notebookContainer');
     
@@ -195,7 +258,7 @@ async function loadNotebook(notebookId) {
     // Set the current notebook
     currentNotebook = notebookId;
     
-    // Update active tab - make sure this part works
+    // Update active tab
     document.querySelectorAll('.notebook-tab').forEach(tab => {
         tab.classList.remove('active');
         if (tab.getAttribute('data-notebook') === notebookId) {
@@ -219,7 +282,10 @@ async function loadNotebook(notebookId) {
     renderNotebook(notebookData[notebookId]);
 }
 
-// Function to render a notebook
+/**
+ * Renders a notebook's content to the page
+ * @param {Object} notebookInfo - The parsed notebook information
+ */
 function renderNotebook(notebookInfo) {
     const container = document.getElementById('notebookContainer');
     
@@ -337,7 +403,9 @@ function renderNotebook(notebookInfo) {
     updateNavigationState();
 }
 
-// Function to update navigation state
+/**
+ * Updates the navigation button states
+ */
 function updateNavigationState() {
     const prevEntryBtn = document.getElementById('prevEntry');
     const nextEntryBtn = document.getElementById('nextEntry');
@@ -348,7 +416,10 @@ function updateNavigationState() {
     nextEntryBtn.disabled = false;
 }
 
-// Function to navigate between entries
+/**
+ * Navigates between entries in the notebook
+ * @param {string} direction - 'prev' or 'next' to indicate navigation direction
+ */
 function navigateEntries(direction) {
     const entriesInCurrentNotebook = new Map();
     const notebookInfo = notebookData[currentNotebook];
@@ -425,7 +496,9 @@ function navigateEntries(direction) {
     }
 }
 
-// Search functionality
+/**
+ * Performs search across notebook content and highlights matches
+ */
 function performSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -472,6 +545,7 @@ function performSearch() {
     if (matchCount > 0) {
         searchResultsCount.textContent = `Found ${matchCount} matches`;
         searchResults.style.display = 'block';
+        searchResults.classList.add('visible'); // Add visible class for sticky behavior
         
         // Set up navigation for search results
         const prevResult = document.getElementById('prevResult');
@@ -519,13 +593,16 @@ function performSearch() {
     } else {
         searchResultsCount.textContent = 'No matches found';
         searchResults.style.display = 'block';
+        searchResults.classList.add('visible'); // Add visible class for sticky behavior
         document.getElementById('prevResult').disabled = true;
         document.getElementById('nextResult').disabled = true;
         document.getElementById('currentResult').textContent = '0/0';
     }
 }
 
-// Add a simple test to check if fetch is working and network is accessible
+/**
+ * Tests if fetch is working and network is accessible
+ */
 function testFetch() {
     fetch('data/notebook_A.txt')
         .then(response => {
@@ -543,7 +620,7 @@ function testFetch() {
 
 // Initialize everything when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM loaded, initializing..."); // Debug log
+    console.log("DOM loaded, initializing...");
     
     // Run a quick test to see if fetch is working
     testFetch();
@@ -555,6 +632,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const tocContent = document.getElementById('tocContent');
     const prevEntryBtn = document.getElementById('prevEntry');
     const nextEntryBtn = document.getElementById('nextEntry');
+    const header = document.querySelector('.header');
+    const searchResults = document.querySelector('.search-results');
     
     // Check for all required elements
     if (!backToTopBtn || !searchInput || !searchButton || !tocBtn || 
@@ -562,12 +641,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("One or more required elements are missing from the DOM");
     }
     
-    // Set up notebook tab switching - this is crucial
+    // Set up notebook tab switching
     document.querySelectorAll('.notebook-tab').forEach(tab => {
-        console.log(`Setting up tab for ${tab.getAttribute('data-notebook')}`); // Debug log
+        console.log(`Setting up tab for ${tab.getAttribute('data-notebook')}`);
         tab.addEventListener('click', function() {
             const notebookId = this.getAttribute('data-notebook');
-            console.log(`Tab clicked: ${notebookId}`); // Debug log
+            console.log(`Tab clicked: ${notebookId}`);
             loadNotebook(notebookId);
         });
     });
@@ -576,50 +655,157 @@ document.addEventListener('DOMContentLoaded', function() {
     loadNotebook('A');
     
     // Table of contents dropdown functionality
-    tocBtn.addEventListener('click', function() {
-        tocContent.classList.toggle('show');
-    });
+    if (tocBtn) {
+        tocBtn.addEventListener('click', function() {
+            tocContent.classList.toggle('show');
+        });
+    }
     
     // Close the dropdown if user clicks outside of it
     window.addEventListener('click', function(event) {
         if (!event.target.matches('.toc-btn')) {
-            if (tocContent.classList.contains('show')) {
+            if (tocContent && tocContent.classList.contains('show')) {
                 tocContent.classList.remove('show');
             }
         }
     });
     
     // Entry navigation functionality
-    prevEntryBtn.addEventListener('click', function() {
-        navigateEntries('prev');
-    });
+    if (prevEntryBtn) {
+        prevEntryBtn.addEventListener('click', function() {
+            navigateEntries('prev');
+        });
+    }
     
-    nextEntryBtn.addEventListener('click', function() {
-        navigateEntries('next');
-    });
+    if (nextEntryBtn) {
+        nextEntryBtn.addEventListener('click', function() {
+            navigateEntries('next');
+        });
+    }
     
     // Search functionality
-    searchInput.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-            performSearch();
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+    
+    if (searchButton) {
+        searchButton.addEventListener('click', performSearch);
+    }
+
+    // Handle scroll events for search results highlighting
+    window.addEventListener('scroll', function() {
+        if (searchResults && searchResults.style.display !== 'none') {
+            if (window.scrollY > 100) {
+                searchResults.classList.add('scrolling');
+            } else {
+                searchResults.classList.remove('scrolling');
+            }
+        }
+    });
+
+    // Variables to track scrolling
+    let lastScrollTop = 0;
+    let scrollTimer = null;
+
+    // Handle scroll events for header visibility
+    window.addEventListener('scroll', function() {
+        // Clear the timer that will hide the header
+        clearTimeout(scrollTimer);
+        
+        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Show header when scrolling starts
+        if (header) {
+            header.classList.remove('hidden');
+        }
+        
+        // If search results are visible, add scrolling class
+        if (searchResults && searchResults.classList.contains('visible')) {
+            searchResults.classList.add('scrolling');
+        }
+        
+        // Set timer to hide header after scrolling stops
+        scrollTimer = setTimeout(function() {
+            // Only hide header if we've scrolled down a bit
+            if (currentScrollTop > 100 && header) {
+                header.classList.add('hidden');
+            }
+            
+            // Remove scrolling class from search results
+            if (searchResults && searchResults.classList.contains('visible')) {
+                searchResults.classList.remove('scrolling');
+            }
+        }, 500); // 0.5 seconds after scrolling stops
+        
+        // Update last scroll position
+        lastScrollTop = currentScrollTop;
+    });
+
+    // Show header when hovering near the top of the screen or when scrolling starts
+    document.addEventListener('mousemove', function(e) {
+        // If mouse is near the top of the viewport (within 20px)
+        if (e.clientY <= 20 && header) {
+            header.classList.remove('hidden');
         }
     });
     
-    searchButton.addEventListener('click', performSearch);
+    // Add scroll direction detection for header visibility
+    let isScrollingUp = false;
+    let lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
     
+    // Function to show header with transition delay
+    function showHeaderWithDelay() {
+        if (header && header.classList.contains('hidden')) {
+            // Add a class that applies a longer transition for appearing
+            header.classList.add('showing');
+            
+            // Use setTimeout to create a delay before actually showing the header
+            setTimeout(function() {
+                header.classList.remove('hidden');
+                // Remove the showing class after transition completes
+                setTimeout(function() {
+                    header.classList.remove('showing');
+                }, 1500);
+            }, 200);
+        }
+    }
+    
+    // Detect scroll direction and show header when scrolling up
+    window.addEventListener('scroll', function() {
+        const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Determine scroll direction
+        isScrollingUp = currentScrollPosition < lastScrollPosition;
+        
+        // If scrolling up and header is hidden, show it with delay
+        if (isScrollingUp && currentScrollPosition > 100) {
+            showHeaderWithDelay();
+        }
+        
+        lastScrollPosition = currentScrollPosition;
+    });
+
     // Back to top button
     window.addEventListener('scroll', function() {
-        if (window.pageYOffset > 300) {
-            backToTopBtn.style.display = 'block';
-        } else {
-            backToTopBtn.style.display = 'none';
+        if (backToTopBtn) {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.style.display = 'block';
+            } else {
+                backToTopBtn.style.display = 'none';
+            }
         }
     });
     
-    backToTopBtn.addEventListener('click', function() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
-    });
+    }
 });

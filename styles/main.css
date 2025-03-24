@@ -1,29 +1,42 @@
-        /* Base styling for the entire document */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            background-image: linear-gradient(#ddd 1px, transparent 1px),
-                              linear-gradient(90deg, #ddd 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-        
-        /* Header styling with sticky position */
-        .header {
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-bottom: 1px solid #ddd;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+    /* Header styling with scroll behavior */
+    .header {
+        padding: 10px; /* Thinner padding */
+        background-color: #f0f0f0;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+        position: fixed; /* Fixed position for scroll behavior */
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        transition: transform 0.5s ease; /* Quick disappearing (0.5s) */
+    }
+    
+    /* Header state when invisible (moved up) */
+    .header.hidden {
+        transform: translateY(-100%);
+    }
+    
+    /* Class for slower appearance */
+    .header.showing {
+        transition: transform 1.5s ease; /* Slower appearing (1.5s) */
+    }
+    
+    /* Add padding to body to prevent content from being hidden under the header */
+    body {
+        margin: 0;
+        padding-top: 60px; /* Adjust this value based on your header height */
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        background-image: linear-gradient(#ddd 1px, transparent 1px),
+                          linear-gradient(90deg, #ddd 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
         
         /* Search bar styling */
         .search-bar {
@@ -222,13 +235,29 @@
         }
         
         /* Search results container */
-        .search-results {
-            margin: 5px auto 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            display: none;
-            max-width: 800px;
+        /* Make search results container sticky and position it below the header */
+       .search-results {
+        margin: 5px auto 10px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        display: none;
+        max-width: 800px;
+        position: sticky;
+        top: 10px; /* Small gap from top when header is hidden */
+        z-index: 90;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    
+        /* Add a subtle transition effect when scrolling */
+        .search-results.visible {
+        display: block;
+        transition: box-shadow 0.3s ease;
+        }
+    
+        /* Enhanced shadow when scrolling to make it stand out more */
+        .search-results.visible.scrolling {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         /* Search results count display */
