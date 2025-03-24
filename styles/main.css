@@ -30,7 +30,7 @@
     /* Add padding to body to prevent content from being hidden under the header */
     body {
         margin: 0;
-        padding-top: 60px; /* Adjust this value based on your header height */
+        padding-top: 100px; /* Adjust this value based on header height */
         font-family: Arial, sans-serif;
         background-color: #f5f5f5;
         background-image: linear-gradient(#ddd 1px, transparent 1px),
@@ -141,14 +141,31 @@
             display: block;
         }
         
+
+
+        /* Text wrapper styling to match image wrapper */
+        .text-wrapper {
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: white;
+        margin-bottom: 10px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 20px; /* Adjust this value based on header height */
+        width: calc(100% - 20px); /* Subtracting the padding */
+        box-sizing: border-box;
+        }
+
+
         /* Container for the text content */
         .text-container {
             flex: 1;
             padding: 20px;
             border-left: 1px solid #ddd;
-            max-height: 600px; /* Set a maximum height to match typical image height */
+            max-height: 655px; /* Set a maximum height to match typical image height */
             overflow-y: auto; /* Make it scrollable vertically */
-            font-size: 0.95em; /* Slightly reduced font size for better fit */
+            font-size: 0.90em; /* Slightly reduced font size for better fit */
         }
         
         /* Improve scrollbar appearance for the text container */
@@ -205,8 +222,8 @@
         /* Back to top button */
         .back-to-top {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 80px;
+            right: 50px;
             background-color: #333;
             color: white;
             border: none;

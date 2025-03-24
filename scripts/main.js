@@ -2,7 +2,7 @@
 const config = {
     scrollTimings: {
       headerHide: 500,    // ms to wait before hiding header after scroll stops
-      headerShow: 1500    // ms for header show animation duration
+      headerShow: 500     // ms for header show animation duration
     },
     thresholds: {
       scrollTop: 100,     // px scrolled before header hides
@@ -10,12 +10,44 @@ const config = {
     }
   };
   
+/**
+ * Handles scroll events 
+ */
+function handleScroll() {
+    const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const header = document.querySelector('.header');
+    const searchResults = document.querySelector('.search-results');
+    const notebookTitle = document.getElementById('notebookTitle');
+    
+    // If search results are visible, add scrolling class
+    if (searchResults && searchResults.classList.contains('visible')) {
+        searchResults.classList.add('scrolling');
+    }
+    
+    // Only hide header if we've scrolled down past the title
+    if (currentScrollTop > (notebookTitle ? notebookTitle.offsetTop + notebookTitle.offsetHeight : 100)) {
+        if (header) {
+            header.classList.add('hidden');
+        }
+    }
+    
+    // Update search results positioning based on header visibility
+    if (searchResults) {
+        if (header && header.classList.contains('hidden')) {
+            searchResults.style.top = '10px'; // Less top padding when header is hidden
+        } else {
+            searchResults.style.top = '70px'; // More top padding when header is visible
+        }
+    }
+}
+
+
   // Use requestAnimationFrame for scroll handling
   let ticking = false;
   window.addEventListener('scroll', function() {
     if (!ticking) {
       window.requestAnimationFrame(function() {
-        // Your scroll handling code here
+        // Scroll handling code here
         handleScroll();
         ticking = false;
       });
@@ -217,7 +249,7 @@ function createImageElement(notebookId, pageNumber) {
 /**
  * Loads and displays a specific notebook
  * @param {string} notebookId - The ID of the notebook to load
- */
+ */// In loadNotebook function, around line 253, the error starts
 async function loadNotebook(notebookId) {
     console.log(`Loading notebook ${notebookId}...`);
     
@@ -280,7 +312,7 @@ async function loadNotebook(notebookId) {
     
     // Render the notebook
     renderNotebook(notebookData[notebookId]);
-}
+} // THIS CLOSING BRACE WAS MISSING! The function was left open
 
 /**
  * Renders a notebook's content to the page
@@ -378,10 +410,19 @@ function renderNotebook(notebookInfo) {
             textContainer.appendChild(entryNumberElem);
         }
         
+        // Create text wrapper for content
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'text-wrapper';
+        
         const textContent = document.createElement('div');
         textContent.className = 'text-content';
         textContent.textContent = page.content;
-        textContainer.appendChild(textContent);
+        
+        // Add text content to wrapper
+        textWrapper.appendChild(textContent);
+        
+        // Add wrapper to container
+        textContainer.appendChild(textWrapper);
         
         // Add them to the section
         section.appendChild(imageContainer);
