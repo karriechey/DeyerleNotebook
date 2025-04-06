@@ -187,7 +187,7 @@ function getImagePath(notebookId, pageNumber) {
 }
 
 /**
- * Creates an image element with robust error handling
+ * Creates an image element with error handling
  * @param {string} notebookId - The ID of the notebook
  * @param {number} pageNumber - The page number
  * @returns {HTMLImageElement} - The created image element
